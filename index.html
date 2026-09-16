@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="生產日報" />
+<meta name="theme-color" content="#1d9e75" />
+<title>9.2生產日報 - 手機填報</title>
+<style>
+  :root{
+    --primary:#1d9e75;
+    --primary-dark:#0f6e56;
+    --bg:#f4f5f3;
+    --card:#ffffff;
+    --border:#e1e1de;
+    --text:#1f1f1d;
+    --text-secondary:#6b6b66;
+    --danger:#c0392b;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","Microsoft JhengHei",sans-serif;
+    background:var(--bg); color:var(--text); padding-bottom:96px;
+  }
+  header{
+    background:var(--primary); color:#fff; padding:16px 18px;
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  header h1{font-size:17px; font-weight:600; margin:0;}
+  header .status{font-size:12px; opacity:.85;}
+  main{padding:14px; max-width:520px; margin:0 auto;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .card h2{font-size:13px; color:var(--text-secondary); margin:0 0 10px; font-weight:600; letter-spacing:.02em;}
+  .row{display:grid; gap:10px; margin-bottom:10px;}
+  .row.cols-2{grid-template-columns:1fr 1fr;}
+  .row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+  label{display:block; font-size:12px; color:var(--text-secondary); margin-bottom:4px;}
+  input, select, textarea{
+    width:100%; height:40px; border:1px solid var(--border); border-radius:8px;
+    padding:0 10px; font-size:15px; background:#fff; color:var(--text);
+  }
+  textarea{height:70px; padding:8px 10px; resize:vertical;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--primary); outline-offset:-1px;}
+  .hint{font-size:11px; color:var(--text-secondary); margin-top:4px;}
+  .material-block{
+    background:var(--bg); border:1px solid var(--border); border-radius:10px;
+    padding:10px; margin-bottom:8px; position:relative;
+  }
+  .material-block .remove{
+    position:absolute; top:8px; right:8px; background:none; border:none;
+    color:var(--danger); font-size:13px; padding:2px 6px; cursor:pointer;
+  }
+  .add-btn, .save-btn, .secondary-btn{
+    border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; border:none;
+  }
+  .add-btn{
+    background:#fff; border:1px dashed var(--primary); color:var(--primary-dark);
+    width:100%; height:38px; margin-top:2px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .chip{
+    background:#e6f5ee; color:var(--primary-dark); font-size:13px; padding:6px 10px;
+    border-radius:100px; display:flex; align-items:center; gap:6px;
+  }
+  .chip button{background:none; border:none; color:var(--primary-dark); cursor:pointer; font-size:13px; padding:0;}
+  .staff-add{display:flex; gap:8px;}
+  .staff-add input{flex:1;}
+  .staff-add button{
+    width:64px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:14px;
+  }
+  footer{
+    position:fixed; bottom:0; left:0; right:0; background:var(--card);
+    border-top:1px solid var(--border); padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+  .save-btn{
+    width:100%; height:46px; background:var(--primary); color:#fff; font-size:16px;
+  }
+  .save-btn:disabled{background:#9dcdba;}
+  .banner{
+    max-width:520px; margin:0 auto 10px; padding:10px 12px; border-radius:10px; font-size:13px; display:none;
+  }
+  .banner.ok{display:block; background:#e6f5ee; color:var(--primary-dark);}
+  .banner.err{display:block; background:#fbeaea; color:var(--danger);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>9.2生產日報 · 手機填報</h1>
+  <span class="status" id="connStatus">連線中…</span>
+</header>
+
+<main>
+  <div class="banner" id="banner"></div>
+
+  <form id="reportForm">
+
+    <div class="card">
+      <h2>基本資料</h2>
+      <div class="row cols-2">
+        <div>
+          <label>日期</label>
+          <input type="date" name="日期" id="fDate" required />
+        </div>
+        <div>
+          <label>組別</label>
+          <input list="groupList" name="組別" placeholder="輸入或選擇組別" required />
+          <datalist id="groupList"></datalist>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>記錄人員代號</label>
+          <input list="staffList" name="記錄" placeholder="例如 A00077" required />
+          <datalist id="staffList"></datalist>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>產品內容</h2>
+      <div class="row">
+        <div>
+          <label>客戶</label>
+          <input list="customerList" name="客戶" placeholder="輸入或選擇客戶" required />
+          <datalist id="customerList"></datalist>
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label>貨號</label>
+          <input name="貨號" placeholder="例如 126324" required />
+        </div>
+        <div>
+          <label>產品名稱</label>
+          <input list="productList" name="產品名稱" placeholder="輸入或選擇產品" required />
+          <datalist id="productList"></datalist>
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label>包裝規格</label>
+          <input name="包裝規格" placeholder="例如 600g/支" />
+        </div>
+        <div>
+          <label>完成數量</label>
+          <input type="number" name="完成數量" min="0" required />
+        </div>
+      </div>
+      <div class="row cols-3">
+        <div>
+          <label>籃入數</label>
+          <input type="number" name="籃入數" min="0" />
+        </div>
+        <div>
+          <label>加工人數</label>
+          <input type="number" name="加工人數" min="0" required />
+        </div>
+        <div>
+          <label>加工型式</label>
+          <input list="packFormList" name="加工型式" value="一般" />
+          <datalist id="packFormList"></datalist>
+        </div>
+      </div>
+      <div class="row cols-2">
+        <div>
+          <label>包裝時間_起</label>
+          <input type="time" name="包裝時間_起" required />
+        </div>
+        <div>
+          <label>包裝時間_迄</label>
+          <input type="time" name="包裝時間_迄" required />
+        </div>
+      </div>
+      <p class="hint">合計工時、單號、儲存時間送出後由系統自動產生，不需手動輸入。</p>
+    </div>
+
+    <div class="card">
+      <h2>原料使用（最多 3 組，符合表單既有欄位結構）</h2>
+      <div id="materialContainer"></div>
+      <button type="button" class="add-btn" id="addMaterialBtn">+ 新增原料</button>
+    </div>
+
+    <div class="card">
+      <h2>人員（最多 9 人）</h2>
+      <div class="chips" id="staffChips"></div>
+      <div class="staff-add">
+        <input list="staffList" id="staffInput" placeholder="輸入人員代號後按「加入」" />
+        <button type="button" id="addStaffBtn">加入</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>標籤 / 設備 / 備註</h2>
+      <div class="row cols-2">
+        <div>
+          <label>標籤</label>
+          <input list="tagList" name="標籤" value="無標章" />
+          <datalist id="tagList"></datalist>
+        </div>
+        <div>
+          <label>設備</label>
+          <input list="equipmentList" name="設備" placeholder="設備代碼/掃碼" />
+          <datalist id="equipmentList"></datalist>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>備註</label>
+          <textarea name="備註" placeholder="輸入備註說明"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</main>
+
+<footer>
+  <button class="save-btn" id="saveBtn">儲存日報</button>
+</footer>
+
+<script>
+// ⚠️ 部署 Apps Script 為「網頁應用程式」後，把取得的網址貼在這裡
+const API_URL = 'https://script.google.com/macros/s/AKfycbzJeVtaWPmj_2NDq5Xbgm9FRs3Pz36xL4bNzx1YMiJ33P2dh3YofCtV5w0a_Ac_so67VA/exec';
+
+const state = { materials: 0, maxMaterials: 3, staff: [], maxStaff: 9, options: null };
+
+function el(tag, attrs, html){
+  const e = document.createElement(tag);
+  Object.entries(attrs || {}).forEach(([k,v]) => e.setAttribute(k,v));
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function fillDatalist(id, values){
+  const dl = document.getElementById(id);
+  dl.innerHTML = '';
+  (values || []).forEach(v => dl.appendChild(el('option', { value: v })));
+}
+
+async function loadOptions(){
+  try{
+    const res = await fetch(API_URL, { method:'GET' });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    state.options = data;
+    fillDatalist('groupList', data.groups);
+    fillDatalist('staffList', data.staff);
+    fillDatalist('customerList', data.customers);
+    fillDatalist('productList', data.products);
+    fillDatalist('packFormList', data.packForms);
+    fillDatalist('tagList', data.tags);
+    fillDatalist('equipmentList', data.equipment);
+    document.getElementById('connStatus').textContent = '已連線';
+  }catch(err){
+    document.getElementById('connStatus').textContent = '離線 / 尚未設定連線';
+    console.warn('讀取選單失敗，可離線繼續手動輸入：', err.message);
+  }
+}
+
+function addMaterialBlock(){
+  if (state.materials >= state.maxMaterials) return;
+  state.materials += 1;
+  const n = state.materials;
+  const suffix = n === 1 ? '' : n; // 原料 / 原料2 / 原料3 對應原表欄位命名
+  const wrap = el('div', { class:'material-block', 'data-n': n });
+  wrap.innerHTML = `
+    <button type="button" class="remove" data-remove="${n}">移除 ✕</button>
+    <label>原料名稱${n>1?n:''}</label>
+    <input list="materialList" name="原料名稱${suffix}" placeholder="輸入或選擇原料" />
+    <div class="row cols-3" style="margin-top:8px;">
+      <div><label>使用量(件)</label><input type="number" name="原料${suffix}使用量(件)" step="0.01" /></div>
+      <div><label>使用量(加)</label><input type="number" name="原料${suffix}使用量(加)" step="0.01" /></div>
+      <div><label>單位(加)</label><input list="unitList" name="單位${suffix}(加)" /></div>
+    </div>
+    <div class="row cols-2" style="margin-top:8px;">
+      <div><label>退貨</label><input type="number" name="${n>1?n+'退貨':'退貨'}" step="0.01" /></div>
+      <div><label>廢棄</label><input type="number" name="${n>1?n+'廢棄':'廢棄'}" step="0.01" /></div>
+    </div>
+  `;
+  document.getElementById('materialContainer').appendChild(wrap);
+  fillDatalist('materialList', state.options ? state.options.materials : []);
+  fillDatalist('unitList', state.options ? state.options.units : []);
+  if (state.materials >= state.maxMaterials) document.getElementById('addMaterialBtn').style.display = 'none';
+}
+
+document.getElementById('materialContainer').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-remove]');
+  if (!btn) return;
+  btn.closest('.material-block').remove();
+  document.getElementById('addMaterialBtn').style.display = 'block';
+});
+
+document.getElementById('addMaterialBtn').addEventListener('click', addMaterialBlock);
+
+function renderStaffChips(){
+  const box = document.getElementById('staffChips');
+  box.innerHTML = '';
+  state.staff.forEach((code, i) => {
+    const chip = el('span', { class:'chip' }, `${code} `);
+    const rm = el('button', { type:'button' }, '✕');
+    rm.addEventListener('click', () => { state.staff.splice(i,1); renderStaffChips(); });
+    chip.appendChild(rm);
+    box.appendChild(chip);
+  });
+}
+
+document.getElementById('addStaffBtn').addEventListener('click', () => {
+  const input = document.getElementById('staffInput');
+  const v = input.value.trim();
+  if (!v) return;
+  if (state.staff.length >= state.maxStaff){
+    showBanner('人員最多只能新增 9 位', 'err');
+    return;
+  }
+  if (!state.staff.includes(v)) state.staff.push(v);
+  input.value = '';
+  renderStaffChips();
+});
+
+function showBanner(msg, type){
+  const b = document.getElementById('banner');
+  b.className = 'banner ' + type;
+  b.textContent = msg;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+addMaterialBlock();
+loadOptions();
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const form = document.getElementById('reportForm');
+  if (!form.checkValidity()){
+    form.reportValidity();
+    return;
+  }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '儲存中…';
+
+  const fd = new FormData(form);
+  const payload = {};
+  fd.forEach((v,k) => { if (v !== '') payload[k] = v; });
+  state.staff.forEach((code, i) => { payload['人員-' + (i+1)] = code; });
+
+  try{
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' }, // 避免預檢請求，Apps Script 用 text/plain 接收較穩定
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '寫入失敗');
+    showBanner('已儲存，單號：' + data.單號, 'ok');
+    form.reset();
+    document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('materialContainer').innerHTML = '';
+    state.materials = 0;
+    document.getElementById('addMaterialBtn').style.display = 'block';
+    addMaterialBlock();
+    state.staff = [];
+    renderStaffChips();
+  }catch(err){
+    showBanner('儲存失敗：' + err.message + '（請確認網路連線與 API_URL 設定）', 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = '儲存日報';
+  }
+});
+</script>
+</body>
+</html>
