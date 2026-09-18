@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生產日報 - 新增紀錄</title>
+<style>
+  :root{
+    --bg:#EEF1EC; --card:#FFFFFF; --border:#DCE2D9; --field:#FBFCFA;
+    --text:#16211A; --muted:#6B7568; --accent:#2F6B4F; --accent-bg:#E7F1EA;
+    --danger:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;color:var(--text);}
+  .wrap{max-width:420px;margin:0 auto;padding-bottom:48px;}
+  .topbar{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--border);padding:18px 20px 14px;}
+  .topbar .k{font-size:12px;color:var(--muted);letter-spacing:.04em;}
+  .topbar .t{font-size:20px;font-weight:700;margin-top:2px;}
+  .content{padding:16px 16px 0;}
+  .card{background:var(--card);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(22,33,26,.05);}
+  .card h2{font-size:15px;font-weight:700;margin:0 0 14px;}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  input,select,textarea{width:100%;height:44px;border-radius:12px;border:1px solid var(--border);padding:0 12px;font-size:14px;background:var(--field);color:var(--text);font-family:inherit;appearance:none;-webkit-appearance:none;}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7568' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;padding-right:34px;}
+  textarea{height:84px;padding:10px 12px;resize:vertical;}
+  input[readonly]{background:#F5F6F3;color:var(--muted);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+  .matTabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .matTab{height:34px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--field);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;}
+  .matTab.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+  .chip{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--accent-bg);color:var(--accent);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+  .chip button{border:none;background:transparent;color:var(--accent);cursor:pointer;font-size:14px;line-height:1;padding:0;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:20px;}
+  .hint{font-size:11px;color:var(--muted);margin-top:8px;}
+  .staffList{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:12px;background:var(--field);margin-top:8px;}
+  .staffItem{display:flex;align-items:center;gap:10px;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--border);}
+  .staffItem:last-child{border-bottom:none;}
+  .staffItem input{width:16px;height:16px;flex:none;}
+  .submit{width:100%;height:52px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+  .submit:disabled{opacity:.6;cursor:not-allowed;}
+  .err{color:var(--danger);font-size:12px;margin-top:6px;display:none;}
+  .badge{display:flex;align-items:center;justify-content:space-between;background:#F1F6F2;border-radius:12px;padding:10px 14px;font-size:13px;}
+  .badge b{color:var(--accent);font-size:15px;}
+  #resultBox{display:none;margin:14px 16px;padding:16px;border-radius:14px;background:#fff;border:1px solid var(--border);}
+  #resultBox.ok{border-color:var(--accent);}
+  #resultBox.fail{border-color:#E0A;}
+  #resultBox pre{white-space:pre-wrap;word-break:break-all;background:var(--field);border-radius:10px;padding:10px;font-size:12px;max-height:200px;overflow:auto;}
+  #resultBox button{margin-top:8px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--field);padding:0 12px;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="k">生產日報</div>
+    <div class="t">新增紀錄</div>
+  </div>
+  <div class="content">
+
+    <div class="card">
+      <h2>基本資訊</h2>
+      <div class="row2">
+        <div><label>日期</label><input id="f_date" type="date"></div>
+        <div><label>組別</label><select id="f_group"></select></div>
+      </div>
+      <label>單號（系統自動產生，不用填）</label>
+      <div style="height:44px;border-radius:12px;border:1px dashed var(--border);padding:0 12px;font-size:14px;color:var(--muted);background:#F5F6F3;display:flex;align-items:center;margin-bottom:12px;">送出後由 n8n 自動編號</div>
+      <div class="row2">
+        <div><label>加工人數</label><select id="f_people"></select></div>
+        <div><label>加工型式</label><select id="f_type"></select></div>
+      </div>
+      <div class="row2">
+        <div><label>包裝時間_起</label><input id="f_start" type="time"></div>
+        <div><label>包裝時間_迄</label><input id="f_end" type="time"></div>
+      </div>
+      <div class="row2">
+        <div><label>到貨日</label><input id="f_arrival" type="date"></div>
+        <div><label>記錄（負責人員，可留空由下方人員第一位帶入）</label><input id="f_record" type="text" placeholder="例如 A00077"></div>
+      </div>
+      <div class="badge"><span>合計工時（分鐘）— 自動計算</span><b id="f_minutes">0</b></div>
+    </div>
+
+    <div class="card">
+      <h2>訂單／產品資訊</h2>
+      <label>選擇產品（依貨號 － 產品名稱 － 客戶）</label>
+      <select id="f_product" style="margin-bottom:12px;" onchange="applyProduct()"></select>
+      <div class="row2">
+        <div><label>貨號</label><input id="f_itemno" type="text" readonly></div>
+        <div><label>客戶</label><select id="f_cust"></select></div>
+      </div>
+      <label>產品名稱</label>
+      <input id="f_pname" type="text" readonly style="margin-bottom:12px;">
+      <div class="row2">
+        <div><label>包裝規格</label><input id="f_spec" type="text"></div>
+        <div><label>籃入數</label><input id="f_basket" type="number"></div>
+      </div>
+      <div class="row2" style="margin-bottom:0;">
+        <div><label>品質規格</label><select id="f_qspec"></select></div>
+        <div><label>完成數量</label><input id="f_done" type="number"></div>
+      </div>
+      <div class="err" id="err_required">請至少選擇產品、確認客戶，並填入完成數量</div>
+    </div>
+
+    <div class="card">
+      <h2>原料明細</h2>
+      <label>原料數</label>
+      <select id="f_matcount" style="margin-bottom:14px;" onchange="renderMatTabs()">
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+      </select>
+      <div class="matTabs" id="matTabsWrap"></div>
+      <div id="matForms"></div>
+    </div>
+
+    <div class="card">
+      <h2>標籤資訊</h2>
+      <div class="row2">
+        <div><label>標籤別</label><select id="f_tagtype"></select></div>
+        <div><label>編號</label><input id="f_tagno" type="text"></div>
+      </div>
+      <div class="row2" style="margin-bottom:0;">
+        <div><label>數量(張)</label><input id="f_tagcount" type="number"></div>
+        <div><label>作廢(張)</label><input id="f_tagvoid" type="number"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>人員（可複選，最多 9 人）</h2>
+      <label>搜尋人員代碼</label>
+      <input id="staffSearch" type="text" placeholder="輸入代碼篩選，例如 A00077" oninput="renderStaffList()">
+      <div class="staffList" id="staffList"></div>
+      <div class="chips" id="staffChips"></div>
+      <div style="margin-top:16px;">
+        <label>設備</label>
+        <select id="f_equip">
+          <option>包裝線 A</option>
+          <option>包裝線 B</option>
+          <option>分切工作站 1</option>
+        </select>
+        <div class="hint">原始資料的設備欄位是系統內部 ID，非人員可讀名稱，這裡先用示意站別，正式上線建議另建一份「設備ID→站名」對照表</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;">備註</label>
+      <textarea id="f_note" placeholder="輸入異常、退貨原因、特殊處理說明…"></textarea>
+    </div>
+
+    <button class="submit" id="submitBtn" onclick="submitForm()">儲存並自動寫入 Excel</button>
+    <div class="hint" style="text-align:center;margin-top:10px;">送出後將透過 n8n 寫入生產日報試算表</div>
+  </div>
+</div>
+
+<div id="resultBox"></div>
+
+<script>
+/* ===== 已換成你實際的 n8n Production URL ===== */
+/* 若部署到 GitHub Pages，記得在 n8n 這個 Webhook 節點的
+   Allowed Origins (CORS) 欄位填入你的 https://george6gt.github.io 網址，否則手機瀏覽器會擋下請求 */
+const CONFIG = {
+  OPTIONS_URL: "https://YOUR-N8N-DOMAIN.app.n8n.cloud/webhook/production-report-app-options",
+  SUBMIT_URL:  "https://george6gt.app.n8n.cloud/webhook/production-report-submit"
+};
+/* ============================================ */
+
+/* ↓↓↓ 以下三份清單，是直接從 n8n_生產日報計算用_9_17.xlsx 現有資料整理出的真實選項 ↓↓↓ */
+const REAL_PRODUCTS = [{"貨號": "126324", "客戶": "全聯", "產品名稱": "美國西洋芹菜", "包裝規格": "600g/支", "籃入數": 20, "品質規格": "一般"}, {"貨號": "WP210010", "客戶": "捷創投資股份有限公司生鮮分公司", "產品名稱": "高麗菜", "包裝規格": "KG", "籃入數": 15, "品質規格": "一般"}, {"貨號": "S0300271", "客戶": "統超-大社廠", "產品名稱": "小黃瓜(拉條)", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "126052", "客戶": "全聯", "產品名稱": "進口青花菜", "包裝規格": "180g/袋", "籃入數": 30, "品質規格": "一般"}, {"貨號": "110253", "客戶": "全聯", "產品名稱": "大黃瓜", "包裝規格": "500g/條", "籃入數": 25, "品質規格": "一般"}, {"貨號": "C218600", "客戶": "好市多股份有限公司", "產品名稱": "南非蜜柑", "包裝規格": "2.3kg/袋", "籃入數": 5, "品質規格": "一般"}, {"貨號": "C116578", "客戶": "好市多股份有限公司", "產品名稱": "美國球芽甘藍", "包裝規格": "600g/包", "籃入數": 18, "品質規格": "一般"}, {"貨號": "A10505018", "客戶": "三澧企業股份有限公司", "產品名稱": "抱子甘藍", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C716578", "客戶": "好市多股份有限公司", "產品名稱": "美國球芽甘藍", "包裝規格": "907g/包", "籃入數": 15, "品質規格": "一般"}, {"貨號": "WP1010211", "客戶": "捷創投資股份有限公司生鮮分公司", "產品名稱": "高麗菜(格外)", "包裝規格": "KG", "籃入數": 15, "品質規格": "一般"}, {"貨號": "C427387", "客戶": "好市多股份有限公司", "產品名稱": "四季豆", "包裝規格": "680g/包", "籃入數": 16, "品質規格": "一般"}, {"貨號": "C209814", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷水果彩椒", "包裝規格": "800g/包", "籃入數": 12, "品質規格": "履歷"}, {"貨號": "C87781", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷小黃瓜", "包裝規格": "1kg/盒", "籃入數": 16, "品質規格": "履歷"}, {"貨號": "C216736", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷牛番茄", "包裝規格": "1050g/盒", "籃入數": 16, "品質規格": "履歷"}, {"貨號": "C123345", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷櫛瓜", "包裝規格": "1kg/包", "籃入數": 15, "品質規格": "履歷"}, {"貨號": "115068", "客戶": "全聯", "產品名稱": "櫛瓜(產銷)", "包裝規格": "400g/袋", "籃入數": 40, "品質規格": "履歷"}, {"貨號": "C350656", "客戶": "好市多股份有限公司", "產品名稱": "越南大白菜", "包裝規格": "1.8kg/粒", "籃入數": 6, "品質規格": "一般"}, {"貨號": "C42480", "客戶": "好市多股份有限公司", "產品名稱": "熟-牛番茄", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C194090", "客戶": "好市多股份有限公司", "產品名稱": "熟-大辣椒", "包裝規格": "500g/包", "籃入數": 1, "品質規格": "一般"}, {"貨號": "C724577", "客戶": "好市多股份有限公司", "產品名稱": "高山高麗菜2.4kg", "包裝規格": "2.4kg(2入)/包", "籃入數": 6, "品質規格": "一般"}, {"貨號": "C39036", "客戶": "好市多股份有限公司", "產品名稱": "美國蘿蔓心", "包裝規格": "1.2kg/袋", "籃入數": 6, "品質規格": "一般"}, {"貨號": "C77026", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷彩色甜椒", "包裝規格": "1kg/包", "籃入數": 12, "品質規格": "履歷"}, {"貨號": "C323742", "客戶": "好市多股份有限公司", "產品名稱": "有機水蓮", "包裝規格": "400g/2入/包", "籃入數": 20, "品質規格": "有機"}, {"貨號": "110309", "客戶": "全聯", "產品名稱": "玉米筍(非基改)", "包裝規格": "95g/盒", "籃入數": 100, "品質規格": "一般"}, {"貨號": "110267", "客戶": "全聯", "產品名稱": "絲瓜", "包裝規格": "450g/條", "籃入數": 25, "品質規格": "一般"}, {"貨號": "WP310030", "客戶": "捷創投資股份有限公司生鮮分公司", "產品名稱": "大黃瓜(格外)", "包裝規格": "KG", "籃入數": 20, "品質規格": "一般"}, {"貨號": "S034001", "客戶": "統超-大社廠", "產品名稱": "洋蔥(去皮)(越南)", "包裝規格": "KG", "籃入數": 20, "品質規格": "一般"}, {"貨號": "S010090", "客戶": "統超-大社廠", "產品名稱": "美生菜(越南)", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C189864", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷黃秋葵", "包裝規格": "500g/盒", "籃入數": 27, "品質規格": "履歷"}, {"貨號": "WP310060", "客戶": "捷創投資股份有限公司生鮮分公司", "產品名稱": "絲瓜", "包裝規格": "KG", "籃入數": 20, "品質規格": "一般"}, {"貨號": "115027", "客戶": "全聯", "產品名稱": "溫室小黃瓜(產銷)", "包裝規格": "300g/2-4條/盒", "籃入數": 40, "品質規格": "履歷"}, {"貨號": "110256", "客戶": "全聯", "產品名稱": "扁蒲", "包裝規格": "500g/粒", "籃入數": 25, "品質規格": "一般"}, {"貨號": "S010010", "客戶": "統超-大社廠", "產品名稱": "高麗菜(伊摩鋁)(越南)", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "119237", "客戶": "全聯", "產品名稱": "冬瓜", "包裝規格": "1000g/粒", "籃入數": 1, "品質規格": "一般"}, {"貨號": "C105816", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷筊白筍", "包裝規格": "1kg/包", "籃入數": 15, "品質規格": "履歷"}, {"貨號": "C93855", "客戶": "好市多股份有限公司", "產品名稱": "有機青江菜", "包裝規格": "500g/包", "籃入數": 18, "品質規格": "有機"}, {"貨號": "S310100", "客戶": "統超-大社廠", "產品名稱": "牛番茄", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C8808608", "客戶": "好市多股份有限公司", "產品名稱": "越南娃娃菜", "包裝規格": "800g/4入/包", "籃入數": 16, "品質規格": "一般"}, {"貨號": "C93858", "客戶": "好市多股份有限公司", "產品名稱": "有機空心菜", "包裝規格": "500g/包", "籃入數": 18, "品質規格": "有機"}, {"貨號": "C95279", "客戶": "好市多股份有限公司", "產品名稱": "有機小白菜", "包裝規格": "500g/包", "籃入數": 18, "品質規格": "有機"}, {"貨號": "C97159", "客戶": "好市多股份有限公司", "產品名稱": "有機小松菜", "包裝規格": "500g/包", "籃入數": 18, "品質規格": "有機"}, {"貨號": "C94930", "客戶": "好市多股份有限公司", "產品名稱": "有機白莧菜", "包裝規格": "500g/包", "籃入數": 18, "品質規格": "有機"}, {"貨號": "C75366", "客戶": "好市多股份有限公司", "產品名稱": "美國青花菜", "包裝規格": "750g/盒", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C223742", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷水蓮", "包裝規格": "400g/包", "籃入數": 20, "品質規格": "履歷"}, {"貨號": "C177472", "客戶": "好市多股份有限公司", "產品名稱": "本產茄子", "包裝規格": "1kg/包", "籃入數": 10, "品質規格": "一般"}, {"貨號": "110290", "客戶": "全聯", "產品名稱": "國產馬鈴薯", "包裝規格": "2-3粒/450g/盒", "籃入數": 30, "品質規格": "一般"}, {"貨號": "C63773", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷福山萵苣", "包裝規格": "600g/包", "籃入數": 15, "品質規格": "履歷"}, {"貨號": "110207", "客戶": "全聯", "產品名稱": "進口蘿美", "包裝規格": "2入/400g/包", "籃入數": 12, "品質規格": "一般"}, {"貨號": "C585829", "客戶": "好市多股份有限公司", "產品名稱": "紐西蘭嫩葉菠菜", "包裝規格": "200g/包", "籃入數": 10, "品質規格": "一般"}, {"貨號": "C36389", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷帶殼玉米筍", "包裝規格": "1.3kg/袋", "籃入數": 15, "品質規格": "履歷"}, {"貨號": "115054", "客戶": "全聯", "產品名稱": "牛心蕃茄(產銷)", "包裝規格": "300g/2-4粒/盒", "籃入數": 30, "品質規格": "履歷"}, {"貨號": "C1154442", "客戶": "好市多股份有限公司", "產品名稱": "本產青椒", "包裝規格": "1kg/包", "籃入數": 12, "品質規格": "一般"}, {"貨號": "C63785", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷A菜", "包裝規格": "600g/包", "籃入數": 15, "品質規格": "履歷"}, {"貨號": "WP210030", "客戶": "捷創投資股份有限公司生鮮分公司", "產品名稱": "山東白菜(格外)", "包裝規格": "KG", "籃入數": 15, "品質規格": "一般"}, {"貨號": "C444073", "客戶": "好市多股份有限公司", "產品名稱": "產銷履歷玉米筍", "包裝規格": "800g/盒", "籃入數": 18, "品質規格": "履歷"}, {"貨號": "110266", "客戶": "全聯", "產品名稱": "小黃瓜", "包裝規格": "300g/2-4條/盒", "籃入數": 40, "品質規格": "一般"}, {"貨號": "S034229", "客戶": "統超-大社廠", "產品名稱": "美生菜", "包裝規格": "KG", "籃入數": 10, "品質規格": "一般"}];
+
+const REAL_MATERIALS = [{"原料名稱": "進口西洋芹菜【青苑】", "原料編號": "A193040", "單位": "支"}, {"原料名稱": "進口高麗菜【長青】", "原料編號": "A113013", "單位": "粒"}, {"原料名稱": "進口青花菜【丞鋒實業有限公司】", "原料編號": "A090012", "單位": "粒"}, {"原料名稱": "本產大黃瓜【雲集農產行】", "原料編號": "A153030", "單位": "KG"}, {"原料名稱": "越南球芽甘藍【禾好】", "原料編號": "A461025", "單位": "KG"}, {"原料名稱": "高山高麗菜【天泉】", "原料編號": "A455019", "單位": "粒"}, {"原料名稱": "產銷履歷四季豆(敏豆)【鹿谷蔬菜生產合作社(廖燕輝)】", "原料編號": "A071100", "單位": "KG"}, {"原料名稱": "產銷履歷四季豆(敏豆)【劉明智】", "原料編號": "A426100", "單位": "KG"}, {"原料名稱": "產銷履歷水果彩椒-紫【林昭志】", "原料編號": "A032078", "單位": "KG"}, {"原料名稱": "產銷履歷水果彩椒-橙【林昭志】", "原料編號": "A032077", "單位": "KG"}, {"原料名稱": "產銷履歷水果彩椒-黃【林昭志】", "原料編號": "A032076", "單位": "KG"}, {"原料名稱": "產銷履歷牛心番茄【聯勤農業農業科技有限公司】", "原料編號": "A371060", "單位": "KG"}, {"原料名稱": "產銷履歷小黃瓜【陳坤隆】", "原料編號": "A461020", "單位": "KG"}, {"原料名稱": "產銷履歷櫛瓜【天泉】", "原料編號": "A455020", "單位": "KG"}, {"原料名稱": "產銷履歷櫛瓜【瑞峰合作社】", "原料編號": "A289020", "單位": "KG"}, {"原料名稱": "產銷履歷櫛瓜【趙少騫】", "原料編號": "A451020", "單位": "KG"}, {"原料名稱": "進口大白菜【禾好】", "原料編號": "A461031", "單位": "KG"}, {"原料名稱": "產銷履歷牛心番茄【魏竹均】", "原料編號": "A456060", "單位": "KG"}, {"原料名稱": "本產紅辣椒【雲集農產行】", "原料編號": "A153210", "單位": "KG"}, {"原料名稱": "高山高麗菜 KG【劉子緯】", "原料編號": "A372024", "單位": "KG"}, {"原料名稱": "越南蘿美【禾好】", "原料編號": "A461072", "單位": "粒"}, {"原料名稱": "產銷履歷小黃瓜【北港農會】", "原料編號": "A176020", "單位": "KG"}, {"原料名稱": "產銷履歷紅甜椒(好)【石佳雯】", "原料編號": "A30271B", "單位": "KG"}, {"原料名稱": "有機水蓮【美蓮蔬果生產合作社】", "原料編號": "A07902A", "單位": "包"}, {"原料名稱": "產銷履歷小黃瓜【雲林縣元長鄉花卉產銷班九班】", "原料編號": "A409020", "單位": "KG"}, {"原料名稱": "進口玉米筍【長昇全球貿易有限公司(榮科)】", "原料編號": "A093031", "單位": "盒"}, {"原料名稱": "本產絲瓜【江宗安】", "原料編號": "A408060", "單位": "條"}, {"原料名稱": "本產大黃瓜【林昱進】", "原料編號": "A402030", "單位": "KG"}, {"原料名稱": "進口洋蔥【豐玉農場】", "原料編號": "A438031", "單位": "KG"}, {"原料名稱": "進口結球萵苣【丞鋒實業有限公司】", "原料編號": "A090060", "單位": "粒"}, {"原料名稱": "進口西洋芹菜【龍鎧國際有限公司】", "原料編號": "A118040", "單位": "支"}, {"原料名稱": "產銷履歷牛心番茄【林鳳田、林四海】", "原料編號": "A017060", "單位": "KG"}, {"原料名稱": "產銷履歷黃秋葵【吳志傑】", "原料編號": "A448010", "單位": "KG"}, {"原料名稱": "產銷履歷小黃瓜【王志欽】", "原料編號": "A011020", "單位": "KG"}, {"原料名稱": "進口玉米筍【好鮮綠國際有限公司】", "原料編號": "A387031", "單位": "盒"}, {"原料名稱": "本產蒲瓜【喬叡果菜行】", "原料編號": "A459080", "單位": "KG"}, {"原料名稱": "本產蒲瓜【雲集農產行】", "原料編號": "A153080", "單位": "KG"}, {"原料名稱": "本產高麗菜【黃文輝】", "原料編號": "A409010", "單位": "KG"}, {"原料名稱": "本產冬瓜【謝和順】", "原料編號": "A464050", "單位": "KG"}, {"原料名稱": "產銷履歷筊白筍【茹翌農產行(美琪)】", "原料編號": "A138090", "單位": "包"}, {"原料名稱": "有機青江菜【賴東卿】", "原料編號": "A023031", "單位": "包"}, {"原料名稱": "進口娃娃菜【禾好】", "原料編號": "A461050", "單位": "包"}, {"原料名稱": "有機空心菜【賴東卿】", "原料編號": "A023041", "單位": "包"}, {"原料名稱": "產銷履歷牛心番茄【南豐果菜生產合作社(吳盈臻)】", "原料編號": "A082060", "單位": "KG"}, {"原料名稱": "有機小白菜【賴東卿】", "原料編號": "A02302A", "單位": "包"}, {"原料名稱": "產銷履歷黃秋葵【鹿草農會】", "原料編號": "A180010", "單位": "KG"}, {"原料名稱": "有機小松菜(油菜)【賴東卿】", "原料編號": "A023111", "單位": "包"}, {"原料名稱": "有機白莧菜【賴東卿】", "原料編號": "A023121", "單位": "包"}, {"原料名稱": "產銷履歷水蓮【邱政鴻】", "原料編號": "A036161", "單位": "包"}, {"原料名稱": "產銷履歷水蓮【謝伯倫】", "原料編號": "A016160", "單位": "包"}, {"原料名稱": "本產茄子【雲集農產行】", "原料編號": "A153090", "單位": "KG"}, {"原料名稱": "本產馬鈴薯【玉糧農產行】", "原料編號": "A416042", "單位": "KG"}, {"原料名稱": "產銷履歷水蓮【任治美】", "原料編號": "A015160", "單位": "包"}, {"原料名稱": "產銷履歷大陸A菜【玉糧農產行】", "原料編號": "A416051", "單位": "包"}, {"原料名稱": "產銷履歷大陸A菜【雅芳農產行】", "原料編號": "A467052", "單位": "包"}, {"原料名稱": "紐西蘭嫩葉菠菜【丞鋒實業有限公司】", "原料編號": "A090104", "單位": "KG"}, {"原料名稱": "產銷履歷帶殼玉米筍【施侑呈】", "原料編號": "A008164", "單位": "袋"}, {"原料名稱": "產銷履歷牛心番茄【余采潔】", "原料編號": "A402060", "單位": "KG"}, {"原料名稱": "本產青椒【喬叡果菜行】", "原料編號": "A459120", "單位": "KG"}, {"原料名稱": "本產青椒【雲集農產行】", "原料編號": "A153122", "單位": "KG"}, {"原料名稱": "產銷履歷A菜【雅芳農產行】", "原料編號": "A467051", "單位": "包"}, {"原料名稱": "產銷履歷去殼玉米筍【施侑呈】", "原料編號": "A008162", "單位": "盒"}, {"原料名稱": "產銷履歷去殼玉米筍【李亞臻】", "原料編號": "A449160", "單位": "盒"}, {"原料名稱": "產銷履歷去殼玉米筍【雲林縣元長鄉花卉產銷班九班】", "原料編號": "A409160", "單位": "盒"}, {"原料名稱": "有機空心菜【新社果菜合作社】", "原料編號": "A070040", "單位": "包"}];
+
+const REAL_STAFF = ["A000000", "A000004", "A00023", "A00030", "A00032", "A00035", "A00036", "A00077", "A00085", "A00092", "A00093", "A00122", "A00129", "A00135", "A00164", "A00165", "A00694", "A00741", "A00746", "A00868", "A00890", "A00977", "A01031", "A01052", "A01056", "A01098", "A01205", "A01255", "A01326", "A01331", "B00019", "B00063", "B00110", "B00140", "B00215", "B00229", "B00233", "D00048", "D00050", "D00052", "D00054", "D00057", "D00061", "D00062", "D00063", "D00064", "D00065", "D00066", "D00067", "F00008", "F00077", "F00078", "F00087", "L00027", "L00030", "L00104", "L00328", "L00330", "L00370", "L00381", "L00391", "L00396", "L00404", "L00408", "L00468", "L00507", "L00508", "L00513", "L00518", "L00522", "L00528", "L00541", "L00560", "L00561", "L00575", "L00576", "L00596", "L00604", "L00605", "L00612", "L00616", "L00617", "L00619", "L00623", "L00637", "L00646", "L00654", "L00660", "L00693", "M00042", "W00298", "W00476", "X00004", "X00006", "X00017"];
+/* ↑↑↑ 以上為真實資料清單 ↑↑↑ */
+
+const DEFAULTS = {
+  groups: ["1","2","3","4","5","6","7","8","9","學生","有機","崑山","晚2","六信1","六信2","六信4","六信5","六信7"],
+  units: ["KG","粒","包","N/A","盒","支","條","袋"],
+  processTypes: ["一般","貼標","重整","全檢","改標"],
+  qspecs: ["一般","履歷","有機","N/A"],
+  tagTypes: ["無標章","履歷標章","有機標章"],
+  products: REAL_PRODUCTS,
+  materials: REAL_MATERIALS,
+  staff: REAL_STAFF
+};
+
+let OPTIONS = JSON.parse(JSON.stringify(DEFAULTS));
+let staffSelected = new Set(["A00077","A00890","A01031"]);
+let matCount = 1;
+let matData = { "1":{}, "2":{}, "3":{} };
+
+function isPlaceholderUrl(u){
+  return !u || u.indexOf("YOUR-N8N-DOMAIN") !== -1;
+}
+
+function fillSelect(id, list, selectedIndex){
+  const el = document.getElementById(id);
+  el.innerHTML = list.map((v,i)=>`<option value="${v}" ${i===selectedIndex?"selected":""}>${v}</option>`).join("");
+}
+
+async function loadOptions(){
+  if(isPlaceholderUrl(CONFIG.OPTIONS_URL)){
+    // 選單網址還沒接上真實的 n8n（這個 webhook 是可選的），直接用內建資料，不要等網路逾時
+    OPTIONS = JSON.parse(JSON.stringify(DEFAULTS));
+  } else {
+    try{
+      const res = await fetch(CONFIG.OPTIONS_URL, { method:"GET" });
+      if(!res.ok) throw new Error("bad status");
+      const data = await res.json();
+      OPTIONS = Object.assign({}, DEFAULTS, data);
+    }catch(e){
+      OPTIONS = JSON.parse(JSON.stringify(DEFAULTS));
+    }
+  }
+
+  fillSelect("f_group", OPTIONS.groups, OPTIONS.groups.indexOf("6"));
+  fillSelect("f_people", Array.from({length:12},(_,i)=>String(i+1)), 4);
+  fillSelect("f_type", OPTIONS.processTypes, 0);
+  fillSelect("f_qspec", OPTIONS.qspecs, 0);
+  fillSelect("f_tagtype", OPTIONS.tagTypes, 0);
+
+  const custList = Array.from(new Set(OPTIONS.products.map(p=>p.客戶)));
+  fillSelect("f_cust", custList, 0);
+
+  const prodEl = document.getElementById("f_product");
+  prodEl.innerHTML = OPTIONS.products.map((p,i)=>
+    `<option value="${i}">${p.貨號} － ${p.產品名稱}（${p.客戶}）</option>`
+  ).join("");
+  applyProduct();
+
+  renderStaffList();
+  renderStaffChips();
+  renderMatTabs();
+}
+
+function applyProduct(){
+  const i = Number(document.getElementById("f_product").value || 0);
+  const p = OPTIONS.products[i];
+  if(!p) return;
+  document.getElementById("f_itemno").value = p.貨號;
+  document.getElementById("f_pname").value = p.產品名稱;
+  document.getElementById("f_spec").value = p.包裝規格;
+  document.getElementById("f_basket").value = p.籃入數;
+  document.getElementById("f_cust").value = p.客戶;
+  document.getElementById("f_qspec").value = p.品質規格 && OPTIONS.qspecs.includes(p.品質規格) ? p.品質規格 : OPTIONS.qspecs[0];
+}
+
+function calcMinutes(){
+  const s = document.getElementById("f_start").value;
+  const e = document.getElementById("f_end").value;
+  if(!s || !e){ document.getElementById("f_minutes").textContent = "0"; return; }
+  const [sh,sm]=s.split(":").map(Number), [eh,em]=e.split(":").map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if(mins < 0) mins += 24*60;
+  document.getElementById("f_minutes").textContent = mins;
+}
+document.getElementById("f_start").addEventListener("change", calcMinutes);
+document.getElementById("f_end").addEventListener("change", calcMinutes);
+
+function renderStaffList(){
+  const q = (document.getElementById("staffSearch").value || "").trim().toUpperCase();
+  const list = OPTIONS.staff.filter(id => !q || id.toUpperCase().includes(q));
+  const wrap = document.getElementById("staffList");
+  wrap.innerHTML = list.slice(0,60).map(id=>{
+    const checked = staffSelected.has(id) ? "checked" : "";
+    return `<label class="staffItem"><input type="checkbox" ${checked} onchange="toggleStaff('${id}', this.checked)"><span>${id}</span></label>`;
+  }).join("") || `<div style="padding:12px;font-size:13px;color:var(--muted);">查無符合的代碼</div>`;
+}
+function toggleStaff(id, checked){
+  if(checked){
+    if(staffSelected.size >= 9){ alert("最多選 9 位人員"); renderStaffList(); return; }
+    staffSelected.add(id);
+  } else {
+    staffSelected.delete(id);
+  }
+  renderStaffChips();
+}
+function removeStaff(id){
+  staffSelected.delete(id);
+  renderStaffChips();
+  renderStaffList();
+}
+function renderStaffChips(){
+  const wrap = document.getElementById("staffChips");
+  wrap.innerHTML = Array.from(staffSelected).map(id=>
+    `<span class="chip">${id}<button type="button" onclick="removeStaff('${id}')" aria-label="移除 ${id}">×</button></span>`
+  ).join("");
+}
+
+function renderMatTabs(){
+  matCount = Number(document.getElementById("f_matcount").value);
+  const tabWrap = document.getElementById("matTabsWrap");
+  tabWrap.innerHTML = "";
+  for(let i=1;i<=matCount;i++){
+    const b = document.createElement("button");
+    b.type="button"; b.className="matTab" + (i===1?" active":"");
+    b.textContent = "原料 " + i;
+    b.onclick = ()=>showMatForm(i);
+    b.dataset.i = i;
+    tabWrap.appendChild(b);
+  }
+  showMatForm(1);
+}
+
+function matNameOptions(selectedName){
+  return OPTIONS.materials.map(m=>
+    `<option value="${m.原料名稱}" ${m.原料名稱===selectedName?"selected":""}>${m.原料名稱}</option>`
+  ).join("");
+}
+function unitOptions(selectedUnit){
+  return OPTIONS.units.map(u=>`<option ${u===selectedUnit?"selected":""}>${u}</option>`).join("");
+}
+
+function matFieldsHtml(i){
+  const d = matData[i] || {};
+  const defaultMat = d.name ? OPTIONS.materials.find(m=>m.原料名稱===d.name) : OPTIONS.materials[0];
+  const name = d.name || (defaultMat ? defaultMat.原料名稱 : "");
+  const code = d.code !== undefined ? d.code : (defaultMat ? defaultMat.原料編號 : "");
+  const unit = d.unit || (defaultMat ? defaultMat.單位 : OPTIONS.units[0]);
+  return `
+    <div>
+      <label>原料名稱</label>
+      <select id="m_name_${i}" style="margin-bottom:12px;" onchange="applyMaterial(${i})">
+        ${matNameOptions(name)}
+      </select>
+      <div class="row2">
+        <div><label>原料日</label><input id="m_date_${i}" type="date" value="${d.date||""}"></div>
+        <div><label>原料編號</label><input id="m_code_${i}" type="text" value="${code}" readonly></div>
+      </div>
+      <div class="row3">
+        <div><label>使用量(件)</label><input id="m_use1_${i}" type="number" value="${d.use1||""}"></div>
+        <div><label>使用量(加)</label><input id="m_use2_${i}" type="number" value="${d.use2||""}"></div>
+        <div><label>單位</label><select id="m_unit_${i}">${unitOptions(unit)}</select></div>
+      </div>
+      <div class="row3" style="margin-bottom:0;">
+        <div><label>退貨</label><input id="m_return_${i}" type="number" value="${d.ret||""}"></div>
+        <div><label>退單位</label><select id="m_runit_${i}">${unitOptions(d.runit||unit)}</select></div>
+        <div><label>廢棄</label><input id="m_waste_${i}" type="number" value="${d.waste||""}"></div>
+      </div>
+    </div>`;
+}
+
+function applyMaterial(i){
+  const name = document.getElementById("m_name_"+i).value;
+  const m = OPTIONS.materials.find(x=>x.原料名稱===name);
+  if(!m) return;
+  document.getElementById("m_code_"+i).value = m.原料編號;
+  document.getElementById("m_unit_"+i).value = m.單位;
+}
+
+function showMatForm(i){
+  saveCurrentMatForm();
+  document.querySelectorAll(".matTab").forEach(b=>b.classList.toggle("active", Number(b.dataset.i)===i));
+  document.getElementById("matForms").innerHTML = matFieldsHtml(i);
+  document.getElementById("matForms").dataset.current = i;
+}
+
+function saveCurrentMatForm(){
+  const i = document.getElementById("matForms").dataset.current;
+  if(!i) return;
+  matData[i] = {
+    name: valOf("m_name_"+i), date: valOf("m_date_"+i), code: valOf("m_code_"+i),
+    use1: valOf("m_use1_"+i), use2: valOf("m_use2_"+i), unit: valOf("m_unit_"+i),
+    ret: valOf("m_return_"+i), runit: valOf("m_runit_"+i), waste: valOf("m_waste_"+i)
+  };
+}
+function valOf(id){ const el = document.getElementById(id); return el ? el.value : ""; }
+
+function collectPayload(){
+  saveCurrentMatForm();
+  const materials = [];
+  for(let i=1;i<=matCount;i++){
+    const d = matData[i] || {};
+    materials.push({
+      原料名稱: d.name||"", 原料日: d.date||"", 原料編號: d.code||"",
+      使用量件: d.use1||"", 使用量加: d.use2||"", 單位: d.unit||"",
+      退貨: d.ret||"", 退單位: d.runit||"", 廢棄: d.waste||""
+    });
+  }
+  const staffArr = Array.from(staffSelected);
+  return {
+    日期: valOf("f_date"), 組別: valOf("f_group"), 加工人數: valOf("f_people"),
+    加工型式: valOf("f_type"),
+    包裝時間_起: valOf("f_start"), 包裝時間_迄: valOf("f_end"),
+    合計工時分鐘: document.getElementById("f_minutes").textContent,
+    到貨日: valOf("f_arrival"),
+    記錄: valOf("f_record") || staffArr[0] || "",
+    貨號: valOf("f_itemno"), 客戶: valOf("f_cust"), 產品名稱: valOf("f_pname"),
+    包裝規格: valOf("f_spec"), 籃入數: valOf("f_basket"), 品質規格: valOf("f_qspec"),
+    完成數量: valOf("f_done"), 原料數: matCount, 原料明細: materials,
+    標籤別: valOf("f_tagtype"), 標籤編號: valOf("f_tagno"),
+    標籤數量張: valOf("f_tagcount"), 標籤作廢張: valOf("f_tagvoid"),
+    人員: staffArr, 設備: valOf("f_equip"), 備註: valOf("f_note")
+  };
+}
+
+async function submitForm(){
+  const payload = collectPayload();
+  const errBox = document.getElementById("err_required");
+  if(!payload.日期 || !payload.客戶 || !payload.產品名稱 || !payload.完成數量){
+    errBox.style.display = "block";
+    return;
+  }
+  errBox.style.display = "none";
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true; btn.textContent = "送出中…";
+
+  const box = document.getElementById("resultBox");
+  if(isPlaceholderUrl(CONFIG.SUBMIT_URL)){
+    box.className = "fail"; box.style.display = "block";
+    box.innerHTML = `<b style="color:#C0392B">尚未設定 n8n webhook 網址</b>
+      <div class="hint" style="margin:6px 0 8px;">CONFIG.SUBMIT_URL 目前還是預留的佔位網址，還沒換成你真正的 n8n webhook。以下是本次會送出的資料，可先複製給老闆看：</div>
+      <pre>${JSON.stringify(payload, null, 2)}</pre>
+      <button onclick="navigator.clipboard.writeText(document.querySelector('#resultBox pre').textContent)">複製 JSON</button>`;
+    btn.disabled = false; btn.textContent = "儲存並自動寫入 Excel";
+    return;
+  }
+  try{
+    const res = await fetch(CONFIG.SUBMIT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json().catch(()=>({}));
+    box.className = "ok"; box.style.display = "block";
+    box.innerHTML = `<b style="color:var(--accent)">已送出，n8n 已接收</b><br><span style="font-size:13px;color:var(--muted)">系統編號：${data.單號 || "(由 n8n 回傳)"}</span>`;
+  }catch(e){
+    box.className = "fail"; box.style.display = "block";
+    box.innerHTML = `<b style="color:#C0392B">尚未連上 n8n webhook</b>
+      <div class="hint" style="margin:6px 0 8px;">請確認 CONFIG.SUBMIT_URL 是否已改成你自己的 n8n webhook 網址，以及該網址是否可從此網頁存取。以下是本次會送出的資料，可先複製給老闆看：</div>
+      <pre>${JSON.stringify(payload, null, 2)}</pre>
+      <button onclick="navigator.clipboard.writeText(document.querySelector('#resultBox pre').textContent)">複製 JSON</button>`;
+  }finally{
+    btn.disabled = false; btn.textContent = "儲存並自動寫入 Excel";
+  }
+}
+
+loadOptions();
+</script>
+</body>
+</html>
